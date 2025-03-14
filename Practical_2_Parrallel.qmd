@@ -1,0 +1,69 @@
+---
+title: "Practical_2_Parrallel"
+---
+
+### Question 1
+
+```{r}
+library(foreach)
+library(doParallel)
+run = function(){
+  results = foreach(i = 1:100,.combine=rbind) %do% {
+  Samp <- rexp(100,rate = 1)
+  c(mean(Samp),var(Samp))
+}}
+system.time(run())
+```
+
+### Question 2
+
+```{r}
+library(MASS)
+library(doParallel)
+
+cl <- makeCluster(100)
+registerDoParallel(cl)
+
+func <- function(){
+result <- foreach(i = 1:10000,.combine=c,.packages = 'MASS') %dopar% {
+median(sample(galaxies,82,replace = T))}
+return(result)
+}
+system.time({func()})
+stopCluster(cl)
+```
+
+### Question 3
+
+```{r}
+library(doParallel)
+
+cl <- makeCluster(detectCores()-1)
+registerDoParallel(cl)
+
+vect <- foreach(i = 1:1000,.combine = c) %dopar% {
+  new <- rexp(50,1)
+  means <- replicate(1000,mean(sample(new,50,replace = T)))
+  lower <-quantile(means,0.025) 
+  upper <-quantile(means,0.975)
+  ifelse(lower<=1 & upper>=1,T,F)
+}
+stopCluster(cl)
+coverage <- sum(vect)/length(vect)
+```
+
+### Question 4
+
+```{r}
+
+library(iterators)
+
+generator<- irnorm(5)
+set.seed(1234)
+result <- foreach(i = 1:3,.combine = c) %do% {
+  max(nextElem(generator))
+}
+result
+```
+
+### Question 5
